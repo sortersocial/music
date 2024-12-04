@@ -1,13 +1,34 @@
 import os
+from dotenv import load_dotenv
 import json
 import requests
 
-# Spotify API Helper
+# Add this line near the start of your code, before any env vars are used
+load_dotenv()
+
+def get_access_token():
+    auth_url = "https://accounts.spotify.com/api/token"
+    client_id = os.getenv("CLIENT_ID")
+    client_secret = os.getenv("CLIENT_SECRET")
+    print(client_id, client_secret)
+    
+    auth_response = requests.post(auth_url, {
+        'grant_type': 'client_credentials',
+        'client_id': client_id,
+        'client_secret': client_secret,
+    })
+    
+    if auth_response.status_code == 200:
+        return auth_response.json()['access_token']
+    else:
+        print(auth_response.json())
+        raise Exception("Failed to get access token")
+
 def spotify_api_call(endpoint, params=None):
     base_url = "https://api.spotify.com/v1"
     url = f"{base_url}{endpoint}"
-    api_key = os.getenv("API_KEY")
-    headers = {"Authorization": f"Bearer {api_key}"}
+    access_token = get_access_token()
+    headers = {"Authorization": f"Bearer {access_token}"}
     
     response = requests.get(url, headers=headers, params=params)
     if response.status_code == 200:

@@ -65,22 +65,23 @@ def add_album(album_data):
     sanitized_album = sanitize_name(album_name)
     
     # Define paths
-    base_artist_dir = f"music/artists/{sanitized_artist}"
+    base_artist_dir = f"artists/{sanitized_artist}"
     album_dir = f"{base_artist_dir}/{sanitized_album}"
     
     # Create directories
     create_directory(album_dir)
     
-    # Add album metadata
+    # Add album metadata - now one level higher with album name
     album_metadata = {
         "title": album_name,
         "artist": artist_name,
         "release_year": album_data["release_date"],
         "genres": album_data.get("genres", []),
-        "tracklist": [track["name"] for track in album_data["tracks"]["items"]]
+        "tracklist": [track["id"] for track in album_data["tracks"]["items"]],
+        "id": album_data["id"]
     }
-    write_json(f"{album_dir}/metadata.json", album_metadata)
-    print(f"Added album metadata to: {album_dir}/metadata.json")
+    write_json(f"{base_artist_dir}/{sanitized_album}.json", album_metadata)
+    print(f"Added album metadata to: {base_artist_dir}/{sanitized_album}.json")
     
     # Add songs metadata
     for track in album_data["tracks"]["items"]:
@@ -90,7 +91,8 @@ def add_album(album_data):
             "title": track["name"],
             "artist": artist_name,
             "album": album_name,
-            "duration_ms": track["duration_ms"]
+            "duration_ms": track["duration_ms"],
+            "id": track["id"]
         }
         write_json(song_path, song_metadata)
         print(f"Added song metadata to: {song_path}")
@@ -105,7 +107,8 @@ def add_album(album_data):
     else:
         artist_metadata = {
             "name": artist_name,
-            "albums": [album_name]
+            "albums": [album_name],
+            "id": album_data["artists"][0]["id"]
         }
     write_json(artist_metadata_path, artist_metadata)
     print(f"Added artist metadata to: {artist_metadata_path}")
